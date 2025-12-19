@@ -92,7 +92,7 @@ def get_all_recipes():
         recipes = Recipe.query.with_entities(
             Recipe.recipe_id,
             Recipe.recipe_name,
-            Recipe.prep_time,
+            Recipe.prep_time_in_min,
             Recipe.meal,
             Recipe.rec_img_url,
             Recipe.soph_submitted,
@@ -104,7 +104,7 @@ def get_all_recipes():
             rows.append({
                 "recipe_id": r.recipe_id,
                 "recipe_name": r.recipe_name,
-                "prep_time": r.prep_time,
+                "prep_time_in_min": r.prep_time_in_min,
                 "meal": r.meal,
                 "rec_img_url": r.rec_img_url,
                 "soph_submitted": r.soph_submitted,
@@ -160,7 +160,7 @@ def get_recipe(recipe_id: int):
             "recipe_id": recipe.recipe_id,
             "recipe_name": recipe.recipe_name,
             "user_encrypted": recipe.user_encrypted,
-            "prep_time": recipe.prep_time,
+            "prep_time_in_min": recipe.prep_time_in_min,
             "rating": _as_float_or_none(recipe.rating),
             "meal": recipe.meal,
             "rec_img_url": recipe.rec_img_url,
@@ -179,7 +179,7 @@ def get_recipe(recipe_id: int):
 #######################################################################################################
 # PUT RECIPE
 # Expects:
-#   - form field "data": JSON string with recipe_name, ingredients[], prep_time, meal, instructions[]
+#   - form field "data": JSON string with recipe_name, ingredients[], prep_time_in_min, meal, instructions[]
 #   - file field (any): image file
 #######################################################################################################
 
@@ -199,7 +199,7 @@ def create_recipe():
 
         recipe_name = payload.get("recipe_name")
         ingredients = payload.get("ingredients")
-        prep_time = payload.get("prep_time")
+        prep_time_in_min = payload.get("prep_time_in_min")
         meal = payload.get("meal")
         instructions = payload.get("instructions")
 
@@ -209,11 +209,11 @@ def create_recipe():
         if not isinstance(ingredients, list) or not isinstance(instructions, list):
             return _bad_request("ingredients and instructions must be arrays")
         try:
-            prep_time_int = int(prep_time)
+            prep_time_in_min_int = int(prep_time_in_min)
         except Exception:
-            return _bad_request("Invalid prep_time value")
-        if prep_time_int < 0:
-            return _bad_request("Invalid prep_time value")
+            return _bad_request("Invalid prep_time_in_min value")
+        if prep_time_in_min_int < 0:
+            return _bad_request("Invalid prep_time_in_min value")
 
         default_rating = Decimal("0.0")
 
@@ -238,7 +238,7 @@ def create_recipe():
         with db.session.begin():
             recipe = Recipe(
                 recipe_name=sanitized_recipe_name,
-                prep_time=prep_time_int,
+                prep_time_in_min=prep_time_in_min_int,
                 meal=sanitized_meal,
                 user_encrypted=user_encrypted,
                 rating=default_rating,
