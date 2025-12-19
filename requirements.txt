@@ -3,3 +3,4 @@ flask_sqlalchemy
 python-dotenv
 boto3
 botocore
+gunicorn
