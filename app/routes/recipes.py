@@ -169,7 +169,7 @@ def get_profile_recipes():
     try:
         ##FIXX THISSSSSSS
         #user_encrypted = require_user()
-        user_encrypted = os.environ.get(["FAKE_ENCRYPTED_USER"])
+        user_encrypted = os.environ.get("FAKE_ENCRYPTED_USER")
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 
