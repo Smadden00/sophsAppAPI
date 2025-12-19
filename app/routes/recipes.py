@@ -160,6 +160,61 @@ def get_recipe(recipe_id: int):
     except Exception as e:
         return jsonify({"message": f"There was an error while fetching the recipe and we could not complete your request. Error: {e}"}), 500
 
+###############################
+# GET ALL PROFILE RECIPES
+###############################
+
+@bp.get("/profile-recipes")
+def get_profile_recipes():
+    try:
+        ##FIXX THISSSSSSS
+        #user_encrypted = require_user()
+        user_encrypted = os.environ.get(["FAKE_ENCRYPTED_USER"])
+    except PermissionError:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    try:
+        rows = (
+            db.session.query(
+                Recipe.recipe_name,
+                Recipe.recipe_id,
+                Recipe.user_encrypted,
+                func.coalesce(
+                    func.round(func.avg(RecipeRating.rating), 1),
+                    0
+                ).label("avg_rating")
+            )
+            .outerjoin(
+                RecipeRating,
+                Recipe.recipe_id == RecipeRating.recipe_id
+            )
+            .filter(Recipe.user_encrypted == user_encrypted)
+            .group_by(
+                Recipe.recipe_id,
+                Recipe.recipe_name,
+                Recipe.user_encrypted
+            )
+            .order_by(Recipe.recipe_name.asc())
+            .all()
+        )
+
+        result = []
+        for r in rows:
+            result.append({
+                "recipe_name": r.recipe_name,
+                "recipe_id": r.recipe_id,
+                "user_encrypted": r.user_encrypted,
+                "avg_rating": float(r.avg_rating) if isinstance(r.avg_rating, Decimal) else r.avg_rating,
+            })
+
+        return jsonify({"body": result}), 200
+
+    except Exception as e:
+        return jsonify({
+            "message": "There was an error while fetching the recipe and we could not complete your request. Error: " + str(e)
+        }), 500
+
+
 #######################################################################################################
 # PUT RECIPE
 # Expects:
