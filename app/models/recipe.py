@@ -20,7 +20,7 @@ class Recipe(db.Model):
     soph_submitted = db.Column(db.Boolean, nullable=True)
 
 class RecipeComment(db.Model):
-    __tablename__ = "recipesComments"
+    __tablename__ = "recipescomments"
     comment_id = db.Column(db.Integer, primary_key=True)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.recipe_id", ondelete="CASCADE"), nullable=False)
     comment = db.Column(db.String(150), nullable=False)
