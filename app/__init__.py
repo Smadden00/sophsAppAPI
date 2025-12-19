@@ -1,8 +1,6 @@
 from flask import Flask, jsonify
 from .config import Config
 from .extensions import db
-from .routes.recipes import bp as recipes_bp
-from .routes.restaurant_types import bp as restaurant_types_bp
 
 def create_app():
     app = Flask(__name__)
@@ -16,13 +14,13 @@ def create_app():
     # Register blueprints
     from .routes.cities import bp as cities_bp
     from .routes.recipes import bp as recipes_bp
-    #from .routes.restaurant_types import bp as restaurant_types_bp
-    #from .routes.reviews import bp as reviews_bp
+    from .routes.restaurant_types import bp as restaurant_types_bp
+    from .routes.reviews import bp as reviews_bp
 
     app.register_blueprint(cities_bp, url_prefix="/api/cities")
     app.register_blueprint(recipes_bp, url_prefix="/api/recipes")
     app.register_blueprint(restaurant_types_bp, url_prefix="/api/restaurant-types")
-    #app.register_blueprint(reviews_bp, url_prefix="/api/reviews")
+    app.register_blueprint(reviews_bp, url_prefix="/api/reviews")
 
     @app.get("/api/health")
     def health():
