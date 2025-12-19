@@ -161,7 +161,6 @@ def get_recipe(recipe_id: int):
             "recipe_name": recipe.recipe_name,
             "user_encrypted": recipe.user_encrypted,
             "prep_time_in_min": recipe.prep_time_in_min,
-            #"rating": _as_float_or_none(recipe.rating),
             "meal": recipe.meal,
             "rec_img_url": recipe.rec_img_url,
             "soph_submitted": recipe.soph_submitted,
