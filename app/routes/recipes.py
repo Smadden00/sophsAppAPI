@@ -214,6 +214,48 @@ def get_profile_recipes():
             "message": "There was an error while fetching the recipe and we could not complete your request. Error: " + str(e)
         }), 500
 
+###############################
+# GET RATED RECIPES
+###############################
+
+@bp.get("/rated-recipes")
+def get_rated_recipes():
+    try:
+        ##FIXX THISSSSSSS
+        #user_encrypted = require_user()
+        user_encrypted = os.environ.get("FAKE_ENCRYPTED_USER")
+    except PermissionError:
+        return jsonify({"message": "Unauthorized"}), 401
+
+    try:
+        rows = (
+            db.session.query(
+                Recipe.recipe_name,
+                Recipe.recipe_id,
+                RecipeRating.rating,
+            )
+            .join(RecipeRating, Recipe.recipe_id == RecipeRating.recipe_id)
+            .filter(RecipeRating.user_encrypted == user_encrypted)
+            .order_by(Recipe.recipe_name.asc())
+            .all()
+        )
+
+        result = [
+            {
+                "recipe_name": r.recipe_name,
+                "recipe_id": r.recipe_id,
+                "rating": int(r.rating),
+            }
+            for r in rows
+        ]
+
+        return jsonify({"body": result}), 200
+
+    except Exception as e:
+        return jsonify({
+            "message": "There was an error while fetching the rated recipes and we could not complete your request. Error: " + str(e)
+        }), 500
+
 
 #######################################################################################################
 # PUT RECIPE
