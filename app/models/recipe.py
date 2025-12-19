@@ -12,8 +12,6 @@ class Recipe(db.Model):
 
     prep_time_in_min = db.Column(db.Integer, nullable=False)
 
-    rating = db.Column(db.Numeric(3, 1), nullable=False)
-
     meal = db.Column(db.Text, nullable=True)
     rec_img_url = db.Column(db.Text, nullable=True)
 
