@@ -1,7 +1,6 @@
 # app/routes/recipes.py
 from __future__ import annotations
 
-import hashlib
 import json
 import os
 from decimal import Decimal
@@ -20,23 +19,9 @@ from ..models.recipe import (
     RecipeInstruction,
     RecipeRating,
 )
+from ..utils.auth import require_user
 
 bp = Blueprint("recipes", __name__)
-
-######################
-# AUTH PLACEHOLDER!!!
-######################
-
-def encrypt_email(email: str) -> str:
-    # 64 hex chars to match VARCHAR(64)
-    return hashlib.sha256(email.strip().lower().encode("utf-8")).hexdigest()
-
-def require_user() -> str:
-    email = request.headers.get("X-User-Email")
-    if not email:
-        # mirrors your 401 Unauthorized behavior
-        raise PermissionError("Unauthorized")
-    return encrypt_email(email)
 
 ###########
 # HELPERS
@@ -214,8 +199,6 @@ def create_recipe():
         if prep_time_in_min_int < 0:
             return _bad_request("Invalid prep_time_in_min value")
 
-        default_rating = Decimal("0.0")
-
         sanitized_recipe_name = str(recipe_name).strip()[:255]
         sanitized_meal = str(meal).strip()[:50]
 
@@ -240,7 +223,6 @@ def create_recipe():
                 prep_time_in_min=prep_time_in_min_int,
                 meal=sanitized_meal,
                 user_encrypted=user_encrypted,
-                rating=default_rating,
                 soph_submitted=False,
             )
             db.session.add(recipe)
