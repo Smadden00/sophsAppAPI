@@ -1,6 +1,8 @@
 from flask import Flask, jsonify
 from .config import Config
 from .extensions import db
+from .routes.recipes import bp as recipes_bp
+
 
 def create_app():
     app = Flask(__name__)
@@ -28,3 +30,5 @@ def create_app():
         return jsonify(status="ok")
 
     return app
+
+
