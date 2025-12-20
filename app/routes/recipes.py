@@ -171,7 +171,7 @@ def get_recipe(recipe_id: int):
 # GET ALL PROFILE RECIPES
 ###############################
 
-@bp.get("/profile-recipes/<str:user_email>")
+@bp.get("/profile-recipes/<string:user_email>")
 def get_profile_recipes(user_email: str):
     try:
         user_encrypted = encrypt_email(user_email)
@@ -225,7 +225,7 @@ def get_profile_recipes(user_email: str):
 # GET RATED RECIPES BY YOUR PROFILE
 ###################################
 
-@bp.get("/rated-recipes/<str: user_email>")
+@bp.get("/rated-recipes/<string:user_email>")
 def get_rated_recipes(user_email: str):
     try:
         user_encrypted = encrypt_email(user_email)

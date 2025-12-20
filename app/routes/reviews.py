@@ -69,7 +69,7 @@ def get_all_reviews():
 ###############################
 # PUT REVIEW (CREATE)
 ###############################
-@bp.route("/<str:user_email>", methods=["PUT", "OPTIONS"])
+@bp.route("/<string:user_email>", methods=["PUT", "OPTIONS"])
 def create_review(user_email: str):
     # Handle CORS preflight
     if request.method == "OPTIONS":
@@ -216,7 +216,7 @@ def get_review(review_id: int):
 ###############################
 # GET PROFILE REVIEWS
 ###############################
-@bp.route("/profile-reviews/<str:user_email>", methods=["GET", "OPTIONS"])
+@bp.route("/profile-reviews/<string:user_email>", methods=["GET", "OPTIONS"])
 def get_profile_reviews(user_email: str):
     # Handle CORS preflight
     if request.method == "OPTIONS":
