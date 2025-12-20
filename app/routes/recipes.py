@@ -451,13 +451,18 @@ def submit_rating(recipe_id: int):
 # GET [ID]: GET USERS RATING OF RECIPE
 #########################################
 
-@bp.get("/<int:recipe_id>/rating")
-def get_users_rating(recipe_id: int):
+@bp.get("/<int:recipe_id>/rating/<string:user_email>")
+def get_users_rating(recipe_id: int, user_email: str):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
+    if not user_email:
+        return _bad_request("Invalid user email")
 
     try:
-        user_encrypted = require_user()
+        user_encrypted = encrypt_email(user_email)
+        ##FIX THISSS
+        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
+        #user_encrypted = require_user()
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 
