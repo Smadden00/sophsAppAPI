@@ -13,7 +13,7 @@ def create_app():
             r"/api/*": {
                 "origins": ["http://localhost:3000", "http://127.0.0.1:3000", "https://sophsdatabasedomain.duckdns.org", "https://sophsmenu.com"],
                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-                "allow_headers": ["Content-Type", "x-api-key"]
+                "allow_headers": ["Content-Type", "x-api-key", "Authorization"]
             }},
         supports_credentials=True,
     )
@@ -22,12 +22,10 @@ def create_app():
     from . import models  # noqa: F401
 
     # Register blueprints
-    from .routes.cities import bp as cities_bp
     from .routes.recipes import bp as recipes_bp
     from .routes.restaurant_types import bp as restaurant_types_bp
     from .routes.reviews import bp as reviews_bp
 
-    app.register_blueprint(cities_bp, url_prefix="/api/cities")
     app.register_blueprint(recipes_bp, url_prefix="/api/recipes")
     app.register_blueprint(restaurant_types_bp, url_prefix="/api/restaurant-types")
     app.register_blueprint(reviews_bp, url_prefix="/api/reviews")

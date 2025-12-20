@@ -11,6 +11,7 @@ from ..models.restaurant_type import RestaurantType
 
 bp = Blueprint("reviews", __name__)
 
+from ..utils.auth import require_user, encrypt_email
 
 def _bad_request(msg: str, status: int = 400):
     return jsonify({"message": msg}), status
@@ -68,12 +69,17 @@ def get_all_reviews():
 ###############################
 # PUT REVIEW (CREATE)
 ###############################
-@bp.put("/")
-def create_review():
+@bp.route("/<str:user_email>", methods=["PUT", "OPTIONS"])
+def create_review(user_email: str):
+    # Handle CORS preflight
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
     try:
-        ##FIXX THISSSSSSS
+        user_encrypted = encrypt_email(user_email)
+        ##FIX THISSS
+        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
-        user_encrypted = os.environ.get("FAKE_ENCRYPTED_USER")
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 
@@ -210,12 +216,17 @@ def get_review(review_id: int):
 ###############################
 # GET PROFILE REVIEWS
 ###############################
-@bp.get("/profile-reviews")
-def get_profile_reviews():
+@bp.route("/profile-reviews/<str:user_email>", methods=["GET", "OPTIONS"])
+def get_profile_reviews(user_email: str):
+    # Handle CORS preflight
+    if request.method == "OPTIONS":
+        return jsonify({}), 200
+    
     try:
-        ##FIXX THISSSSSSS
+        user_encrypted = encrypt_email(user_email)
+        ##FIX THISSS
+        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
-        user_encrypted = os.environ.get("FAKE_ENCRYPTED_USER")
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 

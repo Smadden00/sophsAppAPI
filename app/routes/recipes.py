@@ -19,7 +19,7 @@ from ..models.recipe import (
     RecipeInstruction,
     RecipeRating,
 )
-from ..utils.auth import require_user
+from ..utils.auth import require_user, encrypt_email
 
 bp = Blueprint("recipes", __name__)
 
@@ -160,16 +160,23 @@ def get_recipe(recipe_id: int):
     except Exception as e:
         return jsonify({"message": f"There was an error while fetching the recipe and we could not complete your request. Error: {e}"}), 500
 
+
+#############################
+#############################
+# PROFILE SPECIFIC ENDPOINTS
+#############################
+#############################
+
 ###############################
 # GET ALL PROFILE RECIPES
 ###############################
 
-@bp.get("/profile-recipes")
-def get_profile_recipes():
+@bp.get("/profile-recipes/<str:user_email>")
+def get_profile_recipes(user_email: str):
     try:
-        ##FIXX THISSSSSSS
-        #user_encrypted = require_user()
-        user_encrypted = os.environ.get("FAKE_ENCRYPTED_USER")
+        user_encrypted = encrypt_email(user_email)
+        ##FIX THISSS
+        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 
@@ -214,16 +221,17 @@ def get_profile_recipes():
             "message": "There was an error while fetching the recipe and we could not complete your request. Error: " + str(e)
         }), 500
 
-###############################
-# GET RATED RECIPES
-###############################
+###################################
+# GET RATED RECIPES BY YOUR PROFILE
+###################################
 
-@bp.get("/rated-recipes")
-def get_rated_recipes():
+@bp.get("/rated-recipes/<str: user_email>")
+def get_rated_recipes(user_email: str):
     try:
-        ##FIXX THISSSSSSS
+        user_encrypted = encrypt_email(user_email)
+        ##FIX THISSS
+        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
-        user_encrypted = os.environ.get("FAKE_ENCRYPTED_USER")
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 
