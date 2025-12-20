@@ -419,10 +419,10 @@ def add_comment(recipe_id: int, user_email: str):
 ##############################
 
 ##############################
-# POST [ID]: VOTE ON RATING
+# PUT [ID]: VOTE ON RATING
 ##############################
 
-@bp.post("/<int:recipe_id>/rating/<string:user_email>")
+@bp.put("/<int:recipe_id>/rating/<string:user_email>")
 def submit_rating(recipe_id: int, user_email: str):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
