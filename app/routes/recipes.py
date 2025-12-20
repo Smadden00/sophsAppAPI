@@ -272,10 +272,13 @@ def get_rated_recipes(user_email: str):
 #   - file field (any): image file
 #######################################################################################################
 
-@bp.put("/")
-def create_recipe():
+@bp.put("/<string:user_email>")
+def create_recipe(user_email: str):
     try:
-        user_encrypted = require_user()
+        user_encrypted = encrypt_email(user_email)
+        ##FIX THISSS
+        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
+        #user_encrypted = require_user()
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 
@@ -369,13 +372,16 @@ def create_recipe():
 # PUT [ID]: ADD COMMENT TO ID
 ###############################
 
-@bp.put("/<int:recipe_id>")
-def add_comment(recipe_id: int):
+@bp.put("/<int:recipe_id>/<string:user_email>")
+def add_comment(recipe_id: int, user_email: str):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
     try:
-        user_encrypted = require_user()
+        user_encrypted = encrypt_email(user_email)
+        ##FIX THISSS
+        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
+        #user_encrypted = require_user()
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 
@@ -416,13 +422,16 @@ def add_comment(recipe_id: int):
 # POST [ID]: VOTE ON RATING
 ##############################
 
-@bp.post("/<int:recipe_id>/rating")
-def submit_rating(recipe_id: int):
+@bp.post("/<int:recipe_id>/rating/<string:user_email>")
+def submit_rating(recipe_id: int, user_email: str):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
     try:
-        user_encrypted = require_user()
+        user_encrypted = encrypt_email(user_email)
+        ##FIX THISSS
+        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
+        #user_encrypted = require_user()
     except PermissionError:
         return jsonify({"message": "Unauthorized"}), 401
 
