@@ -5,17 +5,15 @@ from .utils.validator import Auth0JWTBearerTokenValidator
 from authlib.integrations.flask_oauth2 import ResourceProtector
 import os
 
-def create_app():
+# Auth0 - define at module level so it can be imported
+require_auth = ResourceProtector()
+validator = Auth0JWTBearerTokenValidator(
+    os.environ.get('AUTH0_DOMAIN'),
+    os.environ.get('AUTH0_API_IDENTIFIER'),
+)
+require_auth.register_token_validator(validator)
 
-    # Auth0
-    require_auth = ResourceProtector()
-    validator = Auth0JWTBearerTokenValidator(
-        os.environ.get('AUTH0_DOMAIN'),
-        os.environ.get('AUTH0_API_IDENTIFIER'),
-    )
-    require_auth.register_token_validator(validator)
-    
-    
+def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
