@@ -19,7 +19,7 @@ from ..models.recipe import (
     RecipeInstruction,
     RecipeRating,
 )
-from ..utils.auth import require_user, encrypt_user
+from ..utils.auth import encrypt_user
 from .. import require_auth
 
 bp = Blueprint("recipes", __name__)
@@ -479,5 +479,4 @@ def get_users_rating(recipe_id: int):
         return jsonify({"usersRating": rating_value}), 200
 
     except Exception as e:
-        import traceback
         return jsonify({"message": f"There was an error while fetching users rating. Error: {e}"}), 500

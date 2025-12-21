@@ -1,29 +1,23 @@
 from __future__ import annotations
-import os
-
 from flask import Blueprint, jsonify, request, g
 from sqlalchemy import desc
 from decimal import Decimal
-
 from ..extensions import db
 from ..models.review import Review, RestTypeReviewRef
 from ..models.restaurant_type import RestaurantType
+from ..utils.auth import encrypt_user
+from .. import require_auth
 
 bp = Blueprint("reviews", __name__)
 
-from ..utils.auth import require_user, encrypt_user
-from .. import require_auth
-
 def _bad_request(msg: str, status: int = 400):
     return jsonify({"message": msg}), status
-
 
 def _num(v):
     # normalize Decimal -> float for JSON
     if isinstance(v, Decimal):
         return float(v)
     return v
-
 
 ###############################
 # GET ALL REVIEWS

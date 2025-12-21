@@ -1,8 +1,6 @@
-from flask import Blueprint, jsonify, g
+from flask import Blueprint, jsonify
 from ..models.restaurant_type import RestaurantType
 from .. import require_auth
-
-from ..utils.auth import require_user, encrypt_user
 
 bp = Blueprint("restaurant_types", __name__)
 
