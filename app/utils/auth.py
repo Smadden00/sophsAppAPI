@@ -3,10 +3,7 @@ import hashlib
 import hmac
 import os
 
-from flask import request
-
-
-def encrypt_email(email: str) -> str:
+def encrypt_user(email: str) -> str:
     """
     Create a deterministic 64-character hash using HMAC-SHA256.
     Returns exactly 64 hex characters.
@@ -32,15 +29,3 @@ def encrypt_email(email: str) -> str:
     except Exception as error:
         print(f'Encryption error: {error}')
         raise ValueError('Encryption failed')
-
-
-def require_user() -> str:
-    """
-    Extract and encrypt the user email from request headers.
-    Raises PermissionError if X-User-Email header is missing.
-    """
-    ## UPDATE THIS
-    email = request.headers.get("X-User-Email")
-    if not email:
-        raise PermissionError("Unauthorized")
-    return encrypt_email(email)

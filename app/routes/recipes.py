@@ -8,7 +8,7 @@ from typing import Any
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 from sqlalchemy import func
 
 from ..extensions import db
@@ -19,7 +19,8 @@ from ..models.recipe import (
     RecipeInstruction,
     RecipeRating,
 )
-from ..utils.auth import require_user, encrypt_email
+from ..utils.auth import encrypt_user
+from .. import require_auth
 
 bp = Blueprint("recipes", __name__)
 
@@ -83,7 +84,6 @@ def get_all_recipes():
             Recipe.soph_submitted,
         ).all()
 
-        # CHANGE HERE FROM THE PREVIOUS IMPLEMENTATION
         rows = []
         for r in recipes:
             rows.append({
@@ -171,15 +171,15 @@ def get_recipe(recipe_id: int):
 # GET ALL PROFILE RECIPES
 ###############################
 
-@bp.get("/profile-recipes/<string:user_email>")
-def get_profile_recipes(user_email: str):
-    try:
-        user_encrypted = encrypt_email(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
-
+@bp.get("/profile-recipes")
+@require_auth(None)
+def get_profile_recipes():
+    
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
+    
     try:
         rows = (
             db.session.query(
@@ -225,15 +225,14 @@ def get_profile_recipes(user_email: str):
 # GET RATED RECIPES BY YOUR PROFILE
 ###################################
 
-@bp.get("/rated-recipes/<string:user_email>")
-def get_rated_recipes(user_email: str):
-    try:
-        user_encrypted = encrypt_email(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+@bp.get("/rated-recipes")
+@require_auth(None)
+def get_rated_recipes():
+
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     try:
         rows = (
@@ -272,15 +271,14 @@ def get_rated_recipes(user_email: str):
 #   - file field (any): image file
 #######################################################################################################
 
-@bp.put("/<string:user_email>")
-def create_recipe(user_email: str):
-    try:
-        user_encrypted = encrypt_email(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+@bp.put("/")
+@require_auth(None)
+def create_recipe():
+
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     # Parse multipart: request.form + request.files
     try:
@@ -372,18 +370,16 @@ def create_recipe(user_email: str):
 # PUT [ID]: ADD COMMENT TO ID
 ###############################
 
-@bp.put("/<int:recipe_id>/<string:user_email>")
-def add_comment(recipe_id: int, user_email: str):
+@bp.put("/<int:recipe_id>")
+@require_auth(None)
+def add_comment(recipe_id: int):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
-    try:
-        user_encrypted = encrypt_email(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     try:
         body = request.get_json(silent=True) or {}
@@ -422,18 +418,16 @@ def add_comment(recipe_id: int, user_email: str):
 # PUT [ID]: VOTE ON RATING
 ##############################
 
-@bp.put("/<int:recipe_id>/rating/<string:user_email>")
-def submit_rating(recipe_id: int, user_email: str):
+@bp.put("/<int:recipe_id>/rating")
+@require_auth(None)
+def submit_rating(recipe_id: int):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
-    try:
-        user_encrypted = encrypt_email(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     body = request.get_json(silent=True) or {}
     rating = body.get("rating")
@@ -460,20 +454,17 @@ def submit_rating(recipe_id: int, user_email: str):
 # GET [ID]: GET USERS RATING OF RECIPE
 #########################################
 
-@bp.get("/<int:recipe_id>/rating/<string:user_email>")
-def get_users_rating(recipe_id: int, user_email: str):
+@bp.get("/<int:recipe_id>/rating")
+@require_auth(None)
+def get_users_rating(recipe_id: int):
+    
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
-    if not user_email:
-        return _bad_request("Invalid user email")
 
-    try:
-        user_encrypted = encrypt_email(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     try:
         row = RecipeRating.query.with_entities(RecipeRating.rating).filter_by(
@@ -484,7 +475,8 @@ def get_users_rating(recipe_id: int, user_email: str):
         if not row:
             return jsonify({"usersRating": 0}), 200
 
-        return jsonify({"usersRating": int(row.rating)}), 200
+        rating_value = int(row.rating)
+        return jsonify({"usersRating": rating_value}), 200
 
     except Exception as e:
         return jsonify({"message": f"There was an error while fetching users rating. Error: {e}"}), 500

@@ -1,28 +1,23 @@
 from __future__ import annotations
-import os
-
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 from sqlalchemy import desc
 from decimal import Decimal
-
 from ..extensions import db
 from ..models.review import Review, RestTypeReviewRef
 from ..models.restaurant_type import RestaurantType
+from ..utils.auth import encrypt_user
+from .. import require_auth
 
 bp = Blueprint("reviews", __name__)
 
-from ..utils.auth import require_user, encrypt_email
-
 def _bad_request(msg: str, status: int = 400):
     return jsonify({"message": msg}), status
-
 
 def _num(v):
     # normalize Decimal -> float for JSON
     if isinstance(v, Decimal):
         return float(v)
     return v
-
 
 ###############################
 # GET ALL REVIEWS
@@ -69,19 +64,14 @@ def get_all_reviews():
 ###############################
 # PUT REVIEW (CREATE)
 ###############################
-@bp.route("/<string:user_email>", methods=["PUT", "OPTIONS"])
-def create_review(user_email: str):
-    # Handle CORS preflight
-    if request.method == "OPTIONS":
-        return jsonify({}), 200
-    
-    try:
-        user_encrypted = encrypt_email(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+@bp.route("/", methods=["PUT", "OPTIONS"])
+@require_auth(None)
+def create_review():
+
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     try:
         body = request.get_json(silent=True) or {}
@@ -216,19 +206,14 @@ def get_review(review_id: int):
 ###############################
 # GET PROFILE REVIEWS
 ###############################
-@bp.route("/profile-reviews/<string:user_email>", methods=["GET", "OPTIONS"])
-def get_profile_reviews(user_email: str):
-    # Handle CORS preflight
-    if request.method == "OPTIONS":
-        return jsonify({}), 200
-    
-    try:
-        user_encrypted = encrypt_email(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+@bp.route("/profile-reviews")
+@require_auth(None)
+def get_profile_reviews():  
+
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     try:
         rows = (

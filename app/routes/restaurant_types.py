@@ -1,9 +1,11 @@
 from flask import Blueprint, jsonify
 from ..models.restaurant_type import RestaurantType
+from .. import require_auth
 
 bp = Blueprint("restaurant_types", __name__)
 
 @bp.get("/")
+@require_auth(None)
 def get_restaurant_types():
     try:
         rows = (
