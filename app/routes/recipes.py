@@ -173,7 +173,7 @@ def get_recipe(recipe_id: int):
 
 @bp.get("/profile-recipes/<string:user_email>")
 @require_auth(None)
-def get_profile_recipes():
+def get_profile_recipes(user_email: str):
     
     # Get user information from token
     token = g.authlib_server_oauth2_token
