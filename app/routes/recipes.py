@@ -19,7 +19,7 @@ from ..models.recipe import (
     RecipeInstruction,
     RecipeRating,
 )
-from ..utils.auth import require_user, encrypt_email
+from ..utils.auth import require_user, encrypt_user
 from .. import require_auth
 
 bp = Blueprint("recipes", __name__)
@@ -174,8 +174,29 @@ def get_recipe(recipe_id: int):
 @bp.get("/profile-recipes/<string:user_email>")
 @require_auth(None)
 def get_profile_recipes(user_email: str):
+    
+    # Get user information from token
     try:
-        user_encrypted = encrypt_email(user_email)
+        print("Getting token")
+        token = g.authlib_server_oauth2_token
+        print("this is token")
+        print(token)
+
+        print("getting user_sub from token")
+        user_sub = token.sub
+        print("this is token")
+        print(token)
+
+        user_encrypted = encrypt_user(user_email)
+        print("this is user encrypted")
+        print(user_encrypted)
+
+        return jsonify({"body": user_sub}), 200
+
+        #######
+        # TEMPORARY
+        #######
+
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
     except PermissionError:
@@ -230,7 +251,7 @@ def get_profile_recipes(user_email: str):
 @require_auth(None)
 def get_rated_recipes(user_email: str):
     try:
-        user_encrypted = encrypt_email(user_email)
+        user_encrypted = encrypt_user(user_email)
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
@@ -278,7 +299,7 @@ def get_rated_recipes(user_email: str):
 @require_auth(None)
 def create_recipe(user_email: str):
     try:
-        user_encrypted = encrypt_email(user_email)
+        user_encrypted = encrypt_user(user_email)
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
@@ -382,7 +403,7 @@ def add_comment(recipe_id: int, user_email: str):
         return _bad_request("Invalid recipe ID")
 
     try:
-        user_encrypted = encrypt_email(user_email)
+        user_encrypted = encrypt_user(user_email)
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
@@ -433,7 +454,7 @@ def submit_rating(recipe_id: int, user_email: str):
         return _bad_request("Invalid recipe ID")
 
     try:
-        user_encrypted = encrypt_email(user_email)
+        user_encrypted = encrypt_user(user_email)
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
@@ -468,50 +489,32 @@ def submit_rating(recipe_id: int, user_email: str):
 @bp.get("/<int:recipe_id>/rating/<string:user_email>")
 @require_auth(None)
 def get_users_rating(recipe_id: int, user_email: str):
-    print(f"[DEBUG] get_users_rating called with recipe_id={recipe_id}, user_email={user_email}")
     
     if recipe_id <= 0:
-        print(f"[DEBUG] Invalid recipe_id: {recipe_id}")
         return _bad_request("Invalid recipe ID")
     if not user_email:
-        print(f"[DEBUG] Invalid user_email: {user_email}")
         return _bad_request("Invalid user email")
 
     try:
-        print(f"[DEBUG] Attempting to encrypt email: {user_email}")
-        user_encrypted = encrypt_email(user_email)
-        print(f"[DEBUG] Email encrypted successfully: {user_encrypted}")
+        user_encrypted = encrypt_user(user_email)
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
-    except PermissionError as pe:
-        print(f"[DEBUG] PermissionError during email encryption: {pe}")
-        return jsonify({"message": "Unauthorized"}), 401
     except Exception as e:
-        print(f"[DEBUG] Unexpected error during email encryption: {e}")
         return jsonify({"message": "Unauthorized"}), 401
 
     try:
-        print(f"[DEBUG] Querying RecipeRating with recipe_id={recipe_id}, user_encrypted={user_encrypted}")
         row = RecipeRating.query.with_entities(RecipeRating.rating).filter_by(
             recipe_id=recipe_id,
             user_encrypted=user_encrypted,
         ).first()
-        print(f"[DEBUG] Query result: {row}")
 
         if not row:
-            print(f"[DEBUG] No rating found for recipe_id={recipe_id}, user_encrypted={user_encrypted}")
-            print(f"[DEBUG] Returning usersRating=0")
             return jsonify({"usersRating": 0}), 200
 
         rating_value = int(row.rating)
-        print(f"[DEBUG] Rating found: {rating_value}")
-        print(f"[DEBUG] Returning usersRating={rating_value}")
         return jsonify({"usersRating": rating_value}), 200
 
     except Exception as e:
-        print(f"[DEBUG] Exception during database query or response: {e}")
-        print(f"[DEBUG] Exception type: {type(e).__name__}")
         import traceback
-        print(f"[DEBUG] Traceback:\n{traceback.format_exc()}")
         return jsonify({"message": f"There was an error while fetching users rating. Error: {e}"}), 500

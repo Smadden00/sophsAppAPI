@@ -11,7 +11,7 @@ from ..models.restaurant_type import RestaurantType
 
 bp = Blueprint("reviews", __name__)
 
-from ..utils.auth import require_user, encrypt_email
+from ..utils.auth import require_user, encrypt_user
 from .. import require_auth
 
 def _bad_request(msg: str, status: int = 400):
@@ -78,7 +78,7 @@ def create_review(user_email: str):
         return jsonify({}), 200
     
     try:
-        user_encrypted = encrypt_email(user_email)
+        user_encrypted = encrypt_user(user_email)
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
@@ -222,7 +222,7 @@ def get_review(review_id: int):
 @require_auth(None)
 def get_profile_reviews(user_email: str):    
     try:
-        user_encrypted = encrypt_email(user_email)
+        user_encrypted = encrypt_user(user_email)
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
