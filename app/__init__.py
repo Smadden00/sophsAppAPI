@@ -1,12 +1,26 @@
 from flask import Flask, jsonify
 from .config import Config
 from .extensions import db, cors
+from .utils.validator import Auth0JWTBearerTokenValidator
+from authlib.integrations.flask_oauth2 import ResourceProtector
+import os
 
 def create_app():
+
+    # Auth0
+    require_auth = ResourceProtector()
+    validator = Auth0JWTBearerTokenValidator(
+        os.environ.get('AUTH0_DOMAIN'),
+        os.environ.get('AUTH0_API_IDENTIFIER'),
+    )
+    require_auth.register_token_validator(validator)
+    
+    
     app = Flask(__name__)
     app.config.from_object(Config)
 
     db.init_app(app)
+        
     cors.init_app(
         app, 
         resources={
@@ -18,8 +32,8 @@ def create_app():
         supports_credentials=True,
     )
 
-    # Import models so SQLAlchemy knows them (important)
-    from . import models  # noqa: F401
+    # Import models so SQLAlchemy knows them
+    from . import models
 
     # Register blueprints
     from .routes.recipes import bp as recipes_bp

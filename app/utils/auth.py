@@ -44,3 +44,48 @@ def require_user() -> str:
     if not email:
         raise PermissionError("Unauthorized")
     return encrypt_email(email)
+
+
+###################
+# Auth0 functions
+###################
+
+def query_client(client_id):
+    """
+    Query and return an OAuth client by client_id.
+    """
+    return Client.query.filter_by(client_id=client_id).first()
+
+
+def query_token(client_id, oauth_token):
+    """
+    Query and return an OAuth token.
+    """
+    return TokenCredential.query.filter_by(client_id=client_id, oauth_token=oauth_token).first()
+
+
+def exists_nonce(nonce, timestamp, client_id, oauth_token):
+    """
+    Check if a nonce has been used (prevents replay attacks).
+    """
+def exists_nonce(nonce, timestamp, client_id, oauth_token):
+    q = db.session.query(TimestampNonce.nonce).filter_by(
+        nonce=nonce,
+        timestamp=timestamp,
+        client_id=client_id,
+    )
+    if oauth_token:
+        q = q.filter_by(oauth_token=oauth_token)
+    rv = q.first()
+    if rv:
+        return True
+
+    tn = TimestampNonce(
+        nonce=nonce,
+        timestamp=timestamp,
+        client_id=client_id,
+        oauth_token=oauth_token,
+    )
+    db.session.add(tn)
+    db.session.commit()
+    return False

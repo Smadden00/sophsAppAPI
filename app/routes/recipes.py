@@ -20,6 +20,7 @@ from ..models.recipe import (
     RecipeRating,
 )
 from ..utils.auth import require_user, encrypt_email
+from .. import require_auth
 
 bp = Blueprint("recipes", __name__)
 
@@ -83,7 +84,6 @@ def get_all_recipes():
             Recipe.soph_submitted,
         ).all()
 
-        # CHANGE HERE FROM THE PREVIOUS IMPLEMENTATION
         rows = []
         for r in recipes:
             rows.append({
@@ -172,7 +172,8 @@ def get_recipe(recipe_id: int):
 ###############################
 
 @bp.get("/profile-recipes/<string:user_email>")
-def get_profile_recipes(user_email: str):
+@require_auth("read:profileRecipes")
+def get_profile_recipes():
     try:
         user_encrypted = encrypt_email(user_email)
         ##FIX THISSS
