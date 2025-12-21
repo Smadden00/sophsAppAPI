@@ -27,7 +27,7 @@ def get_restaurant_types():
         print("this is user encrypted")
         print(user_encrypted)
 
-        return jsonify({"body": user_sub}), 200
+        return jsonify({"body": user_encrypted}), 200
 
 
         # END TEMP
