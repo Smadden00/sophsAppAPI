@@ -468,29 +468,50 @@ def submit_rating(recipe_id: int, user_email: str):
 @bp.get("/<int:recipe_id>/rating/<string:user_email>")
 @require_auth(None)
 def get_users_rating(recipe_id: int, user_email: str):
+    print(f"[DEBUG] get_users_rating called with recipe_id={recipe_id}, user_email={user_email}")
+    
     if recipe_id <= 0:
+        print(f"[DEBUG] Invalid recipe_id: {recipe_id}")
         return _bad_request("Invalid recipe ID")
     if not user_email:
+        print(f"[DEBUG] Invalid user_email: {user_email}")
         return _bad_request("Invalid user email")
 
     try:
+        print(f"[DEBUG] Attempting to encrypt email: {user_email}")
         user_encrypted = encrypt_email(user_email)
+        print(f"[DEBUG] Email encrypted successfully: {user_encrypted}")
         ##FIX THISSS
         #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
         #user_encrypted = require_user()
-    except PermissionError:
+    except PermissionError as pe:
+        print(f"[DEBUG] PermissionError during email encryption: {pe}")
+        return jsonify({"message": "Unauthorized"}), 401
+    except Exception as e:
+        print(f"[DEBUG] Unexpected error during email encryption: {e}")
         return jsonify({"message": "Unauthorized"}), 401
 
     try:
+        print(f"[DEBUG] Querying RecipeRating with recipe_id={recipe_id}, user_encrypted={user_encrypted}")
         row = RecipeRating.query.with_entities(RecipeRating.rating).filter_by(
             recipe_id=recipe_id,
             user_encrypted=user_encrypted,
         ).first()
+        print(f"[DEBUG] Query result: {row}")
 
         if not row:
+            print(f"[DEBUG] No rating found for recipe_id={recipe_id}, user_encrypted={user_encrypted}")
+            print(f"[DEBUG] Returning usersRating=0")
             return jsonify({"usersRating": 0}), 200
 
-        return jsonify({"usersRating": int(row.rating)}), 200
+        rating_value = int(row.rating)
+        print(f"[DEBUG] Rating found: {rating_value}")
+        print(f"[DEBUG] Returning usersRating={rating_value}")
+        return jsonify({"usersRating": rating_value}), 200
 
     except Exception as e:
+        print(f"[DEBUG] Exception during database query or response: {e}")
+        print(f"[DEBUG] Exception type: {type(e).__name__}")
+        import traceback
+        print(f"[DEBUG] Traceback:\n{traceback.format_exc()}")
         return jsonify({"message": f"There was an error while fetching users rating. Error: {e}"}), 500
