@@ -70,9 +70,9 @@ def get_all_reviews():
 ###############################
 # PUT REVIEW (CREATE)
 ###############################
-@bp.route("/<string:user_email>", methods=["PUT", "OPTIONS"])
+@bp.route("/", methods=["PUT", "OPTIONS"])
 @require_auth(None)
-def create_review(user_email: str):
+def create_review():
 
     # Get user information from token
     token = g.authlib_server_oauth2_token
@@ -212,10 +212,10 @@ def get_review(review_id: int):
 ###############################
 # GET PROFILE REVIEWS
 ###############################
-@bp.route("/profile-reviews/<string:user_email>")
+@bp.route("/profile-reviews")
 @require_auth(None)
-def get_profile_reviews(user_email: str):  
-      
+def get_profile_reviews():  
+
     # Get user information from token
     token = g.authlib_server_oauth2_token
     user_sub = token.sub

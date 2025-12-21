@@ -171,9 +171,9 @@ def get_recipe(recipe_id: int):
 # GET ALL PROFILE RECIPES
 ###############################
 
-@bp.get("/profile-recipes/<string:user_email>")
+@bp.get("/profile-recipes")
 @require_auth(None)
-def get_profile_recipes(user_email: str):
+def get_profile_recipes():
     
     # Get user information from token
     token = g.authlib_server_oauth2_token
@@ -225,9 +225,9 @@ def get_profile_recipes(user_email: str):
 # GET RATED RECIPES BY YOUR PROFILE
 ###################################
 
-@bp.get("/rated-recipes/<string:user_email>")
+@bp.get("/rated-recipes")
 @require_auth(None)
-def get_rated_recipes(user_email: str):
+def get_rated_recipes():
 
     # Get user information from token
     token = g.authlib_server_oauth2_token
@@ -271,9 +271,9 @@ def get_rated_recipes(user_email: str):
 #   - file field (any): image file
 #######################################################################################################
 
-@bp.put("/<string:user_email>")
+@bp.put("/")
 @require_auth(None)
-def create_recipe(user_email: str):
+def create_recipe():
 
     # Get user information from token
     token = g.authlib_server_oauth2_token
@@ -370,9 +370,9 @@ def create_recipe(user_email: str):
 # PUT [ID]: ADD COMMENT TO ID
 ###############################
 
-@bp.put("/<int:recipe_id>/<string:user_email>")
+@bp.put("/<int:recipe_id>")
 @require_auth(None)
-def add_comment(recipe_id: int, user_email: str):
+def add_comment(recipe_id: int):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
@@ -418,9 +418,9 @@ def add_comment(recipe_id: int, user_email: str):
 # PUT [ID]: VOTE ON RATING
 ##############################
 
-@bp.put("/<int:recipe_id>/rating/<string:user_email>")
+@bp.put("/<int:recipe_id>/rating")
 @require_auth(None)
-def submit_rating(recipe_id: int, user_email: str):
+def submit_rating(recipe_id: int):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
@@ -454,9 +454,9 @@ def submit_rating(recipe_id: int, user_email: str):
 # GET [ID]: GET USERS RATING OF RECIPE
 #########################################
 
-@bp.get("/<int:recipe_id>/rating/<string:user_email>")
+@bp.get("/<int:recipe_id>/rating")
 @require_auth(None)
-def get_users_rating(recipe_id: int, user_email: str):
+def get_users_rating(recipe_id: int):
     
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
