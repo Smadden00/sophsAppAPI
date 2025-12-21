@@ -172,7 +172,7 @@ def get_recipe(recipe_id: int):
 ###############################
 
 @bp.get("/profile-recipes/<string:user_email>")
-@require_auth("read:profileRecipes")
+@require_auth(None)
 def get_profile_recipes():
     try:
         user_encrypted = encrypt_email(user_email)
