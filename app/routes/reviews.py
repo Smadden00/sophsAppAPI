@@ -1,7 +1,7 @@
 from __future__ import annotations
 import os
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 from sqlalchemy import desc
 from decimal import Decimal
 
@@ -73,17 +73,11 @@ def get_all_reviews():
 @bp.route("/<string:user_email>", methods=["PUT", "OPTIONS"])
 @require_auth(None)
 def create_review(user_email: str):
-    # Handle CORS preflight
-    if request.method == "OPTIONS":
-        return jsonify({}), 200
-    
-    try:
-        user_encrypted = encrypt_user(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     try:
         body = request.get_json(silent=True) or {}
@@ -220,14 +214,12 @@ def get_review(review_id: int):
 ###############################
 @bp.route("/profile-reviews/<string:user_email>")
 @require_auth(None)
-def get_profile_reviews(user_email: str):    
-    try:
-        user_encrypted = encrypt_user(user_email)
-        ##FIX THISSS
-        #I should configure the frontend to send the users email in the request then use the require user function to get the email then encrypt it.
-        #user_encrypted = require_user()
-    except PermissionError:
-        return jsonify({"message": "Unauthorized"}), 401
+def get_profile_reviews(user_email: str):  
+      
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
 
     try:
         rows = (
