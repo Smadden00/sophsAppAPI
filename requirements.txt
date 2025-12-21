@@ -5,4 +5,5 @@ python-dotenv
 boto3
 botocore
 gunicorn
+Authlib
 nginx
