@@ -12,6 +12,7 @@ from ..models.restaurant_type import RestaurantType
 bp = Blueprint("reviews", __name__)
 
 from ..utils.auth import require_user, encrypt_email
+from .. import require_auth
 
 def _bad_request(msg: str, status: int = 400):
     return jsonify({"message": msg}), status
@@ -217,6 +218,7 @@ def get_review(review_id: int):
 # GET PROFILE REVIEWS
 ###############################
 @bp.route("/profile-reviews/<string:user_email>", methods=["GET", "OPTIONS"])
+@require_auth(None)
 def get_profile_reviews(user_email: str):
     # Handle CORS preflight
     if request.method == "OPTIONS":
