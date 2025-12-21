@@ -217,13 +217,9 @@ def get_review(review_id: int):
 ###############################
 # GET PROFILE REVIEWS
 ###############################
-@bp.route("/profile-reviews/<string:user_email>", methods=["GET", "OPTIONS"])
+@bp.route("/profile-reviews/<string:user_email>")
 @require_auth(None)
-def get_profile_reviews(user_email: str):
-    # Handle CORS preflight
-    if request.method == "OPTIONS":
-        return jsonify({}), 200
-    
+def get_profile_reviews(user_email: str):    
     try:
         user_encrypted = encrypt_email(user_email)
         ##FIX THISSS
