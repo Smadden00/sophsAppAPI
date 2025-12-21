@@ -71,6 +71,7 @@ def get_all_reviews():
 # PUT REVIEW (CREATE)
 ###############################
 @bp.route("/<string:user_email>", methods=["PUT", "OPTIONS"])
+@require_auth(None)
 def create_review(user_email: str):
     # Handle CORS preflight
     if request.method == "OPTIONS":

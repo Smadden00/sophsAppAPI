@@ -227,6 +227,7 @@ def get_profile_recipes(user_email: str):
 ###################################
 
 @bp.get("/rated-recipes/<string:user_email>")
+@require_auth(None)
 def get_rated_recipes(user_email: str):
     try:
         user_encrypted = encrypt_email(user_email)
@@ -274,6 +275,7 @@ def get_rated_recipes(user_email: str):
 #######################################################################################################
 
 @bp.put("/<string:user_email>")
+@require_auth(None)
 def create_recipe(user_email: str):
     try:
         user_encrypted = encrypt_email(user_email)
@@ -374,6 +376,7 @@ def create_recipe(user_email: str):
 ###############################
 
 @bp.put("/<int:recipe_id>/<string:user_email>")
+@require_auth(None)
 def add_comment(recipe_id: int, user_email: str):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
@@ -424,6 +427,7 @@ def add_comment(recipe_id: int, user_email: str):
 ##############################
 
 @bp.put("/<int:recipe_id>/rating/<string:user_email>")
+@require_auth(None)
 def submit_rating(recipe_id: int, user_email: str):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
@@ -462,6 +466,7 @@ def submit_rating(recipe_id: int, user_email: str):
 #########################################
 
 @bp.get("/<int:recipe_id>/rating/<string:user_email>")
+@require_auth(None)
 def get_users_rating(recipe_id: int, user_email: str):
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
