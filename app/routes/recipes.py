@@ -10,6 +10,7 @@ import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 from flask import Blueprint, jsonify, request, g
 from sqlalchemy import func
+import uuid
 
 from ..extensions import db
 from ..models.recipe import (
@@ -40,6 +41,13 @@ def _as_float_or_none(v: Any):
         return float(v)
     except Exception:
         return None
+    
+def _build_cloudfront_url(key: str) -> str:
+    """
+    Build the public CloudFront URL for a given S3 key.
+    """
+    base = os.environ.get("CLOUDFRONT_IMG_BASE_URL")
+    return f"{base}/{key.lstrip('/')}"
 
 def _upload_to_s3(file_storage, key: str) -> str:
     """
@@ -264,12 +272,9 @@ def get_rated_recipes():
         }), 500
 
 
-#######################################################################################################
-# PUT RECIPE
-# Expects:
-#   - form field "data": JSON string with recipe_name, ingredients[], prep_time_in_min, meal, instructions[]
-#   - file field (any): image file
-#######################################################################################################
+####################################################
+# PUT RECIPE DATA (IMG UPLOAD DONE THROUGH CLIENT)
+####################################################
 
 @bp.put("/")
 @require_auth(None)
@@ -280,56 +285,100 @@ def create_recipe():
     user_sub = token.sub
     user_encrypted = encrypt_user(user_sub)
 
-    # Parse multipart: request.form + request.files
+    # Parse JSON request body
     try:
-        data_str = request.form.get("data")
-        if not data_str:
-            return _bad_request("Missing required form field: data")
-        payload = json.loads(data_str)
+        payload = request.get_json(silent=True)
+        if not payload:
+            return _bad_request("Request body is required")
 
         recipe_name = payload.get("recipe_name")
         ingredients = payload.get("ingredients")
-        prep_time_in_min = payload.get("prep_time_in_min")
+        prep_time = payload.get("prep_time")
         meal = payload.get("meal")
         instructions = payload.get("instructions")
+        img_public_url = payload.get("img_public_url") 
+        soph_submitted = payload.get("soph_submitted", False)
 
-        # Input validation (mirrors your Next.js checks)
+        ####################
+        # Validating Inputs
+        ####################
+        
+        # Check required fields exist
         if not recipe_name or not ingredients or not instructions or not meal:
             return _bad_request("Missing required fields")
-        if not isinstance(ingredients, list) or not isinstance(instructions, list):
-            return _bad_request("ingredients and instructions must be arrays")
+        
+        # Validate recipe name
+        if not isinstance(recipe_name, str) or not recipe_name.strip():
+            return _bad_request("Recipe name must be a non-empty string")
+        
+        # Validate meal
+        if not isinstance(meal, str) or not meal.strip():
+            return _bad_request("Meal must be a non-empty string")
+        
+        # Validate ingredients
+        if not isinstance(ingredients, list):
+            return _bad_request("Ingredients must be an array")
+        if len(ingredients) == 0:
+            return _bad_request("At least one ingredient is required")
+        for idx, ingredient in enumerate(ingredients):
+            if not isinstance(ingredient, str) or not ingredient.strip():
+                return _bad_request(f"Ingredient at index {idx} must be a non-empty string")
+        
+        # Validate instructions
+        if not isinstance(instructions, list):
+            return _bad_request("Instructions must be an array")
+        if len(instructions) == 0:
+            return _bad_request("At least one instruction is required")
+        for idx, instruction in enumerate(instructions):
+            if not isinstance(instruction, str) or not instruction.strip():
+                return _bad_request(f"Instruction at index {idx} must be a non-empty string")
+        
+        # Validate prep time
+        if prep_time is None:
+            return _bad_request("Prep time is required")
         try:
-            prep_time_in_min_int = int(prep_time_in_min)
-        except Exception:
-            return _bad_request("Invalid prep_time_in_min value")
-        if prep_time_in_min_int < 0:
-            return _bad_request("Invalid prep_time_in_min value")
+            prep_time_int = int(prep_time)
+        except (ValueError, TypeError):
+            return _bad_request("Prep time must be a valid number")
+        if prep_time_int < 0:
+            return _bad_request("Prep time cannot be negative")
+        
+        # Validate image URL
+        if not img_public_url or not isinstance(img_public_url, str):
+            return _bad_request("Image URL is required")
+        img_public_url_stripped = img_public_url.strip()
+        if not img_public_url_stripped:
+            return _bad_request("Image URL cannot be empty")
+        
+        # Optional: Validate URL is from expected CloudFront domain
+        cloudfront_base = os.environ.get("CLOUDFRONT_IMG_BASE_URL", "")
+        if cloudfront_base and not img_public_url_stripped.startswith(cloudfront_base):
+            return _bad_request("Image URL must be from the expected domain")
+        
+        # Validate soph_submitted is boolean
+        if not isinstance(soph_submitted, bool):
+            return _bad_request("soph_submitted must be a boolean")
+        
+        # Sanitize inputs
+        sanitized_recipe_name = recipe_name.strip()[:255]
+        sanitized_meal = meal.strip()[:50]
+        sanitized_img_public_url = img_public_url_stripped[:500]  # Add max length for URLs
 
-        sanitized_recipe_name = str(recipe_name).strip()[:255]
-        sanitized_meal = str(meal).strip()[:50]
-
-        # Grab an uploaded file
-        uploaded_file = None
-        if request.files:
-            # take the first file
-            uploaded_file = next(iter(request.files.values()))
-
-        if uploaded_file is None:
-            return _bad_request("Missing image file upload")
-
-    except json.JSONDecodeError:
-        return _bad_request("Invalid JSON in form field: data")
     except Exception as e:
         return jsonify({"message": f"Failed to parse request: {e}"}), 400
 
+    ##################
+    # TRY INFO UPLOAD
+    ##################
     try:
         with db.session.begin():
             recipe = Recipe(
                 recipe_name=sanitized_recipe_name,
-                prep_time_in_min=prep_time_in_min_int,
+                prep_time_in_min=prep_time_int,
                 meal=sanitized_meal,
                 user_encrypted=user_encrypted,
-                soph_submitted=False,
+                soph_submitted=soph_submitted,
+                rec_img_url=sanitized_img_public_url,
             )
             db.session.add(recipe)
             db.session.flush()  # get recipe.recipe_id without committing
@@ -352,13 +401,6 @@ def create_recipe():
                     recipe_id=recipe_id,
                     ingredient=sanitized_ingredient,
                 ))
-
-            ###TO DO LATER: FIX THE UPLOAD TO S3!!!!!
-            #Right now it won't work because S3 only accepts files from the frontend server
-
-            # Upload to S3 and store URL
-            image_url = _upload_to_s3(uploaded_file, key=str(recipe_id))
-            recipe.rec_img_url = image_url
 
         return jsonify({"message": "Recipe created successfully", "recipe_id": recipe_id}), 200
 
@@ -480,3 +522,65 @@ def get_users_rating(recipe_id: int):
 
     except Exception as e:
         return jsonify({"message": f"There was an error while fetching users rating. Error: {e}"}), 500
+    
+
+###############################
+# POST: PRESIGN IMAGE UPLOAD
+# This doesn't upload anything, it just generates the information that we can send to the client
+# with the information that this api sends back the client can upload the image
+###############################
+@bp.post("/presign-image-upload")
+@require_auth(None)
+def presign_recipe_image_upload():
+
+    # Get user information from token
+    token = g.authlib_server_oauth2_token
+    user_sub = token.sub
+    user_encrypted = encrypt_user(user_sub)
+
+    body = request.get_json(silent=True) or {}
+    content_type = body.get("contentType")
+
+    # Validate content type
+    allowed = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+    if not content_type or content_type not in allowed:
+        return _bad_request(f"Invalid or missing contentType. Allowed: {sorted(list(allowed))}")
+
+    bucket = os.environ.get("S3_BUCKET_NAME")
+    region = os.environ.get("AWS_REGION")
+    prefix = os.environ.get("S3_UPLOAD_PREFIX")
+
+    # Choose extension based on content type
+    ext_map = {
+        "image/jpeg": "jpg",
+        "image/png": "png",
+        "image/webp": "webp",
+        "image/gif": "gif",
+    }
+    ext = ext_map[content_type]
+
+    # Key like: imgs/<user_encrypted>/<uuid>.jpg
+    key = f"{prefix}/{user_encrypted}/{uuid.uuid4().hex}.{ext}"
+
+    s3 = boto3.client("s3", region_name=region)
+
+    try:
+        upload_url = s3.generate_presigned_url(
+            ClientMethod="put_object",
+            Params={
+                "Bucket": bucket,
+                "Key": key,
+                "ContentType": content_type,
+            },
+            ExpiresIn=500,
+        )
+    except (BotoCoreError, ClientError) as e:
+        return jsonify({"message": f"Failed to generate presigned URL: {e}"}), 500
+
+    img_public_url = _build_cloudfront_url(key)
+
+    return jsonify({
+        "uploadUrl": upload_url,
+        "key": key,
+        "publicUrl": img_public_url,
+    }), 200
