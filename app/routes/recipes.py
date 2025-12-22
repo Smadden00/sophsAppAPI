@@ -179,13 +179,13 @@ def get_recipe(recipe_id: int):
 # GET ALL PROFILE RECIPES
 ###############################
 
-@bp.route("/profile-recipes", methods=["GET", "OPTIONS"])
+@bp.route("/profile-recipes", methods=["OPTIONS"])
+def preflight_profile_recipes():
+    return "", 200
+
+@bp.route("/profile-recipes", methods=["GET"])
 @require_auth(None)
 def get_profile_recipes():
-    # Handle preflight OPTIONS request
-    if request.method == "OPTIONS":
-        return "", 200
-    
     # Get user information from token
     token = g.authlib_server_oauth2_token
     user_sub = token.sub
@@ -236,13 +236,13 @@ def get_profile_recipes():
 # GET RATED RECIPES BY YOUR PROFILE
 ###################################
 
-@bp.route("/rated-recipes", methods=["GET", "OPTIONS"])
+@bp.route("/rated-recipes", methods=["OPTIONS"])
+def preflight_rated_recipes():
+    return "", 200
+
+@bp.route("/rated-recipes", methods=["GET"])
 @require_auth(None)
 def get_rated_recipes():
-    # Handle preflight OPTIONS request
-    if request.method == "OPTIONS":
-        return "", 200
-
     # Get user information from token
     token = g.authlib_server_oauth2_token
     user_sub = token.sub
@@ -282,13 +282,13 @@ def get_rated_recipes():
 # PUT RECIPE DATA (IMG UPLOAD DONE THROUGH CLIENT)
 ####################################################
 
-@bp.route("/", methods=["PUT", "OPTIONS"])
+@bp.route("/", methods=["OPTIONS"])
+def preflight_create_recipe():
+    return "", 200
+
+@bp.route("/", methods=["PUT"])
 @require_auth(None)
 def create_recipe():
-    # Handle preflight OPTIONS request
-    if request.method == "OPTIONS":
-        return "", 200
-    
     # Get user information from token
     token = g.authlib_server_oauth2_token
     user_sub = token.sub
@@ -421,13 +421,13 @@ def create_recipe():
 # PUT [ID]: ADD COMMENT TO ID
 ###############################
 
-@bp.route("/<int:recipe_id>", methods=["PUT", "OPTIONS"])
+@bp.route("/<int:recipe_id>", methods=["OPTIONS"])
+def preflight_add_comment(recipe_id: int):
+    return "", 200
+
+@bp.route("/<int:recipe_id>", methods=["PUT"])
 @require_auth(None)
 def add_comment(recipe_id: int):
-    # Handle preflight OPTIONS request
-    if request.method == "OPTIONS":
-        return "", 200
-
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
@@ -473,13 +473,13 @@ def add_comment(recipe_id: int):
 # PUT [ID]: VOTE ON RATING
 ##############################
 
-@bp.route("/<int:recipe_id>/rating", methods=["PUT", "OPTIONS"])
+@bp.route("/<int:recipe_id>/rating", methods=["OPTIONS"])
+def preflight_submit_rating(recipe_id: int):
+    return "", 200
+
+@bp.route("/<int:recipe_id>/rating", methods=["PUT"])
 @require_auth(None)
 def submit_rating(recipe_id: int):
-    # Handle preflight OPTIONS request
-    if request.method == "OPTIONS":
-        return "", 200
-    
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
@@ -513,13 +513,13 @@ def submit_rating(recipe_id: int):
 # GET [ID]: GET USERS RATING OF RECIPE
 #########################################
 
-@bp.route("/<int:recipe_id>/rating", methods=["GET", "OPTIONS"])
+@bp.route("/<int:recipe_id>/rating", methods=["OPTIONS"])
+def preflight_users_rating(recipe_id: int):
+    return "", 200
+
+@bp.route("/<int:recipe_id>/rating", methods=["GET"])
 @require_auth(None)
 def get_users_rating(recipe_id: int):
-    # Handle preflight OPTIONS request
-    if request.method == "OPTIONS":
-        return "", 200
-    
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
@@ -549,13 +549,14 @@ def get_users_rating(recipe_id: int):
 # This doesn't upload anything, it just generates the information that we can send to the client
 # with the information that this api sends back the client can upload the image
 ###############################
-@bp.route("/presign-image-upload", methods=["POST", "OPTIONS"])
+
+@bp.route("/presign-image-upload", methods=["OPTIONS"])
+def preflight_presign_image_upload():
+    return "", 200
+
+@bp.route("/presign-image-upload", methods=["POST"])
 @require_auth(None)
 def presign_recipe_image_upload():
-    # Handle preflight OPTIONS request
-    if request.method == "OPTIONS":
-        return "", 200
-
     # Get user information from token
     token = g.authlib_server_oauth2_token
     user_sub = token.sub
