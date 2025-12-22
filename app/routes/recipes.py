@@ -276,10 +276,13 @@ def get_rated_recipes():
 # PUT RECIPE DATA (IMG UPLOAD DONE THROUGH CLIENT)
 ####################################################
 
-@bp.put("/")
+@bp.put("/", methods=["PUT", "OPTIONS"])
 @require_auth(None)
 def create_recipe():
-
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
+    
     # Get user information from token
     token = g.authlib_server_oauth2_token
     user_sub = token.sub
@@ -412,9 +415,13 @@ def create_recipe():
 # PUT [ID]: ADD COMMENT TO ID
 ###############################
 
-@bp.put("/<int:recipe_id>")
+@bp.put("/<int:recipe_id>", methods=["PUT", "OPTIONS"])
 @require_auth(None)
 def add_comment(recipe_id: int):
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
+
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
@@ -460,9 +467,13 @@ def add_comment(recipe_id: int):
 # PUT [ID]: VOTE ON RATING
 ##############################
 
-@bp.put("/<int:recipe_id>/rating")
+@bp.put("/<int:recipe_id>/rating", methods=["PUT", "OPTIONS"])
 @require_auth(None)
 def submit_rating(recipe_id: int):
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
+    
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
 
@@ -529,9 +540,12 @@ def get_users_rating(recipe_id: int):
 # This doesn't upload anything, it just generates the information that we can send to the client
 # with the information that this api sends back the client can upload the image
 ###############################
-@bp.post("/presign-image-upload")
+@bp.post("/presign-image-upload", methods=["POST", "OPTIONS"])
 @require_auth(None)
 def presign_recipe_image_upload():
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
 
     # Get user information from token
     token = g.authlib_server_oauth2_token

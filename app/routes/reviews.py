@@ -64,9 +64,12 @@ def get_all_reviews():
 ###############################
 # PUT REVIEW (CREATE)
 ###############################
-@bp.route("/", methods=["PUT"])
+@bp.route("/", methods=["PUT", "OPTIONS"])
 @require_auth(None)
 def create_review():
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
 
     # Get user information from token
     token = g.authlib_server_oauth2_token
