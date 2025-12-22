@@ -64,7 +64,7 @@ def get_all_reviews():
 ###############################
 # PUT REVIEW (CREATE)
 ###############################
-@bp.route("/", methods=["PUT", "OPTIONS"])
+@bp.route("/", methods=["PUT"])
 @require_auth(None)
 def create_review():
 
