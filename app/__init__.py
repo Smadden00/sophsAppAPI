@@ -16,6 +16,7 @@ require_auth.register_token_validator(validator)
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.url_map.strict_slashes = False
 
     db.init_app(app)
         
