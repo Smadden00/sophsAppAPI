@@ -209,9 +209,12 @@ def get_review(review_id: int):
 ###############################
 # GET PROFILE REVIEWS
 ###############################
-@bp.route("/profile-reviews")
+@bp.route("/profile-reviews", methods=["GET", "OPTIONS"])
 @require_auth(None)
 def get_profile_reviews():  
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
 
     # Get user information from token
     token = g.authlib_server_oauth2_token

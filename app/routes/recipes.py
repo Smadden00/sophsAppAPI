@@ -179,9 +179,12 @@ def get_recipe(recipe_id: int):
 # GET ALL PROFILE RECIPES
 ###############################
 
-@bp.get("/profile-recipes")
+@bp.route("/profile-recipes", methods=["GET", "OPTIONS"])
 @require_auth(None)
 def get_profile_recipes():
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
     
     # Get user information from token
     token = g.authlib_server_oauth2_token
@@ -233,9 +236,12 @@ def get_profile_recipes():
 # GET RATED RECIPES BY YOUR PROFILE
 ###################################
 
-@bp.get("/rated-recipes")
+@bp.route("/rated-recipes", methods=["GET", "OPTIONS"])
 @require_auth(None)
 def get_rated_recipes():
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
 
     # Get user information from token
     token = g.authlib_server_oauth2_token
@@ -507,9 +513,12 @@ def submit_rating(recipe_id: int):
 # GET [ID]: GET USERS RATING OF RECIPE
 #########################################
 
-@bp.get("/<int:recipe_id>/rating")
+@bp.route("/<int:recipe_id>/rating", methods=["GET", "OPTIONS"])
 @require_auth(None)
 def get_users_rating(recipe_id: int):
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return "", 200
     
     if recipe_id <= 0:
         return _bad_request("Invalid recipe ID")
