@@ -24,7 +24,7 @@ def create_app():
         app, 
         resources={
             r"/api/*": {
-                "origins": ["http://localhost:3000", "http://127.0.0.1:3000", "https://sophsdatabasedomain.duckdns.org", "https://sophsmenu.com", "https://d1jra9qawas673.cloudfront.net"],
+                "origins": ["http://localhost:3000", "http://127.0.0.1:3000", "https://sophsdatabasedomain.duckdns.org", "https://sophsmenu.com", "https://d1jra9qawas673.cloudfront.net", ", https://www.sophsmenu.com"],
                 "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
                 "allow_headers": ["Content-Type", "x-api-key", "Authorization"]
             }},
